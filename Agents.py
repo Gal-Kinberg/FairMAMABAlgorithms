@@ -15,3 +15,15 @@ class Agents(ABC):
     def observeReward(self, arm: int, reward) -> None:
         return
 
+
+class RandomAgents(Agents):
+    def __init__(self, nAgents: int, nArms: int):
+        super().__init__(nAgents, nArms)
+
+    def getPolicy(self) -> np.ndarray:
+        policy = np.random.random(self.nArms)
+        policy /= np.sum(policy)  # normalize to a sum of 1
+        return policy
+
+    def observeReward(self, arm: int, reward) -> None:
+        return
