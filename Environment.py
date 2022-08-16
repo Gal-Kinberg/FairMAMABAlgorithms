@@ -13,6 +13,13 @@ class Environment:
         self.nArms = len(arms)
         self.nAgents = agents.nAgents
 
+        if agents.nArms != self.nArms:
+            print(f'mismatch agents and arms! agents think there are {agents.nArms} arms but there are {self.nArms} arms!')
+            return
+
+        # save the true utility matrix
+        self.utilityMatrix = getUtilityMatrix(self.arms)
+
         # TODO: compute the optimal policy and its NSW
         self.optimalNSW = None
 
@@ -22,14 +29,13 @@ class Environment:
 
     def simulationStep(self):
         policy = self.agents.getPolicy()
-        arm = np.random.choice(self.nAgents, p=policy)
+        arm = np.random.choice(self.nArms, p=policy)
         reward = self.arms[arm].pull()
         self.agents.observeReward(arm, reward)
 
         # save the observed reward and regret
-        self.observedRewards[self.t] = reward
-        # TODO: compute NSW by given policy, NSW-regret
-        NSW = getNSW(self.arms, policy)
+        NSW = getNSW(policy, self.utilityMatrix)
+        self.observedRewards[self.t] = NSW
         NSWRegret = self.optimalNSW - NSW
         self.observedRegret[self.t] = NSWRegret
 
@@ -47,7 +53,7 @@ class Environment:
             self.simulationStep()
 
     def simulate(self, simulationSteps: int, nSimulations: int):
-        meanRewards = np.zeros(nSimulations)
+        meanRewards = np.zeros(simulationSteps)
         meanRegret = np.zeros_like(meanRewards)
 
         for _ in range(nSimulations):
@@ -58,3 +64,8 @@ class Environment:
         # compute mean rewards and regrets
         meanRewards /= nSimulations
         meanRegret /= nSimulations
+
+
+def getUtilityMatrix(arms: list[Arm]):
+    return np.asarray([arm.utilities() for arm in arms])
+
