@@ -58,7 +58,7 @@ class ExploreFirstAgents(Agents):
 
         self.t += 1
         if self.t == (self.nArms * self.explorationLength):
-            self.estimatedOptimalPolicy = getOptimalPolicy(self.estimatedUtilityMatrix).x
+            self.estimatedOptimalPolicy = getOptimalPolicy(self.estimatedUtilityMatrix)
         return
 
 
@@ -82,7 +82,7 @@ class EpsilonGreedyAgents(Agents):
             policy[self.nextArmToPull] = 1
             self.nextArmToPull = np.mod(self.nextArmToPull + 1, self.nArms)
         else:  # Exploitation
-            policy = getOptimalPolicy(self.estimatedUtilityMatrix).x
+            policy = getOptimalPolicy(self.estimatedUtilityMatrix)
         return policy
 
     def observeReward(self, arm: int, reward) -> None:

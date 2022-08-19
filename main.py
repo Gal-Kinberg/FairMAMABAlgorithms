@@ -13,7 +13,7 @@ if __name__ == '__main__':
         arms.append(BernoulliArm(nAgents, probabilities=probabilities[arm]))
 
     print(getUtilityMatrix(arms))
-    agents = ExploreFirstAgents(nAgents, nArms, explorationLength=20)
+    agents = EpsilonGreedyAgents(nAgents, nArms, epsilon=0.5)
 
     # optRes = getOptimalPolicy(getUtilityMatrix(arms))
     # optimalPolicy = optRes.x

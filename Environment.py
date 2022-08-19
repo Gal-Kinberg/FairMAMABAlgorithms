@@ -20,8 +20,7 @@ class Environment:
         # save the true utility matrix
         self.utilityMatrix = getUtilityMatrix(self.arms)
 
-        # TODO: compute the optimal policy and its NSW
-        self.optimalPolicy = getOptimalPolicy(self.utilityMatrix).x
+        self.optimalPolicy = getOptimalPolicy(self.utilityMatrix)
         self.optimalNSW = getNSW(self.optimalPolicy, self.utilityMatrix)
 
         self.t = 0

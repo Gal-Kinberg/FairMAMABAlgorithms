@@ -16,8 +16,12 @@ def getNSW(policy: np.ndarray, utilityMatrix: np.ndarray):
 def getOptimalPolicy(utilityMatrix: np.ndarray):
     nArms, nAgents = utilityMatrix.shape
 
-    # things to use:
+    initialPolicy = 1 / nArms * np.ones(nArms)
+
+    if getNSW(initialPolicy, utilityMatrix) == 0:  # nothing is known about the utilities right now
+        return initialPolicy
+
     simplexConst = LinearConstraint(np.ones(nArms), lb=1, ub=1)
     positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
-    optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=1/nArms * np.ones(nArms), method='trust-constr', constraints=[simplexConst, positiveConst])
-    return optimizationResult
+    optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=initialPolicy, method='trust-constr', constraints=[simplexConst, positiveConst])
+    return optimizationResult.x
