@@ -3,7 +3,7 @@ import numpy as np
 
 from Agents import Agents
 from Arms import Arm
-from utils.NashSocialWelfare import getNSW
+from utils.NashSocialWelfare import getNSW, getOptimalPolicy
 
 
 class Environment:
@@ -21,7 +21,8 @@ class Environment:
         self.utilityMatrix = getUtilityMatrix(self.arms)
 
         # TODO: compute the optimal policy and its NSW
-        self.optimalNSW = None
+        self.optimalPolicy = getOptimalPolicy(self.utilityMatrix).x
+        self.optimalNSW = getNSW(self.optimalPolicy, self.utilityMatrix)
 
         self.t = 0
         self.observedRewards = None

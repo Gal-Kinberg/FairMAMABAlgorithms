@@ -13,7 +13,7 @@ def getNSW(policy: np.ndarray, utilityMatrix: np.ndarray):
     return np.prod(np.sum(policy[:, np.newaxis] * utilityMatrix, axis=0))
 
 
-def getOptimalNSW(utilityMatrix: np.ndarray):
+def getOptimalPolicy(utilityMatrix: np.ndarray):
     nArms, nAgents = utilityMatrix.shape
 
     # things to use:
