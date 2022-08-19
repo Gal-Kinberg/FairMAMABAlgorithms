@@ -27,6 +27,9 @@ class Environment:
         self.observedRewards = None
         self.observedRegret = None
 
+        self.meanRewards = None
+        self.meanRegret = None
+
     def simulationStep(self):
         policy = self.agents.getPolicy()
         arm = np.random.choice(self.nArms, p=policy)
@@ -51,19 +54,21 @@ class Environment:
         self.initSimulation(simulationSteps)
         for _ in range(simulationSteps):
             self.simulationStep()
+            if self.t % 100 == 0:
+                print(f't = {self.t}')
 
     def simulate(self, simulationSteps: int, nSimulations: int):
-        meanRewards = np.zeros(simulationSteps)
-        meanRegret = np.zeros_like(meanRewards)
+        self.meanRewards = np.zeros(simulationSteps)
+        self.meanRegret = np.zeros_like(self.meanRewards)
 
         for _ in range(nSimulations):
             self.singleSimulation(simulationSteps)
-            meanRewards += self.observedRewards
-            meanRegret += self.observedRegret
+            self.meanRewards += self.observedRewards
+            self.meanRegret += self.observedRegret
 
         # compute mean rewards and regrets
-        meanRewards /= nSimulations
-        meanRegret /= nSimulations
+        self.meanRewards /= nSimulations
+        self.meanRegret /= nSimulations
 
 
 def getUtilityMatrix(arms: list[Arm]):

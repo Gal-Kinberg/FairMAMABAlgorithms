@@ -2,6 +2,7 @@ from Agents import *
 from Arms import *
 from Environment import Environment, getUtilityMatrix
 from utils.NashSocialWelfare import *
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     nAgents = 3
@@ -12,14 +13,18 @@ if __name__ == '__main__':
     for arm in range(nArms):
         arms.append(BernoulliArm(nAgents, probabilities=probabilities[arm]))
 
-    print(getUtilityMatrix(arms))
-    agents = EpsilonGreedyAgents(nAgents, nArms, epsilon=0.5)
+    # print(getUtilityMatrix(arms))
+    agents = ExploreFirstAgents(nAgents, nArms, explorationLength=20)
 
     # optRes = getOptimalPolicy(getUtilityMatrix(arms))
     # optimalPolicy = optRes.x
     # print(optRes)
 
-    nSimulations = 1
-    simulationSteps = int(1e4)
+    nSimulations = 5
+    simulationSteps = int(500)
     simulator = Environment(agents, arms)
     simulator.simulate(simulationSteps, nSimulations)
+
+    plt.figure()
+    plt.plot(simulator.meanRegret)
+    plt.show()
