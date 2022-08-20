@@ -141,3 +141,39 @@ class UCBAgents(Agents):
 
         self.t += 1
         return
+
+
+class FATSBernoulliAgents(Agents):
+    def __init__(self, nAgents: int, nArms: int, initialAlpha, initialBeta):
+        super().__init__(nAgents, nArms)
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+        self.alphas = initialAlpha * np.ones_like(self.estimatedUtilityMatrix)
+        self.betas = initialBeta * np.ones_like(self.estimatedUtilityMatrix)
+
+    def name(self) -> str:
+        return 'FATS'
+
+    def getPolicy(self) -> np.ndarray:
+        # sample random beliefs
+        beliefUtilityMatrix = np.random.beta(self.alphas, self.betas)
+        # select optimal policy based on beliefs
+        policy = getOptimalPolicy(beliefUtilityMatrix)
+        return policy
+
+    def observeReward(self, arm: int, reward) -> None:
+        # update estimated utility matrix
+        self.totalRewardsMatrix[arm] += reward
+        self.timesPulled[arm] += 1
+        self.estimatedUtilityMatrix[arm] = self.totalRewardsMatrix[arm] / self.timesPulled[arm]
+
+        # update the beliefs of each agent concerning the pulled arm
+        self.alphas[arm] += reward
+        self.betas[arm] += (np.ones(self.nAgents) - reward)
+
+        self.t += 1
+        return
