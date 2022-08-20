@@ -54,5 +54,34 @@ def getOptimalUCBPolicy(utilityMatrix: np.ndarray, alpha, UCBs):
     return optimizationResult.x
 
 
-# TODO: Implement Exponentiated Gradient Descent
+def ExponentiatedGradientDescent(targetFunction, gradient, d, stepSize=0.001, tolerance=1e-6, maxIter: int = int(1e6)):
+    w = np.ones(d) / d  # initialize at center of simplex
+
+    for _ in range(maxIter):
+        # compute gradient
+        currGrad = gradient(w)
+
+        # compute Z(t) normalization
+        # normalizationFactor = np.sum(w * currGrad)
+
+        # update weights
+        # w_new = w * np.exp(-stepSize * currGrad) / normalizationFactor
+        w_new = w * np.exp(-stepSize * currGrad)
+        w_new /= np.sum(w_new)
+
+        # check convergence
+        if np.sum(abs(w_new - w)) < tolerance:
+            return w_new
+
+        w = w_new
+
+    print("Didn't converge in maximum iterations. Exiting...")
+    return w
+
+
+# TODO: write NSW gradient
 # TODO: test other optimization methods
+
+if __name__ == '__main__':
+    w = ExponentiatedGradientDescent(None, lambda x: -np.array([x[1] ** 2, 2 * x[0]*x[1]]), 2, stepSize=1, tolerance=1e-5)
+    print(w)
