@@ -25,10 +25,16 @@ class Environment:
 
         self.t = 0
         self.observedRewards = None
+        self.observedRewardsSquared = None
         self.observedRegret = None
+        self.observedRegretSquared = None
 
         self.meanRewards = None
         self.meanRegret = None
+        self.meanSquaredRegret = None
+        self.meanSquaredReward = None
+        self.rewardVariance = None
+        self.regretVariance = None
 
     def simulationStep(self):
         policy = self.agents.getPolicy()
@@ -39,8 +45,10 @@ class Environment:
         # save the observed reward and regret
         NSW = getNSW(policy, self.utilityMatrix)
         self.observedRewards[self.t] = NSW
+        self.observedRewardsSquared[self.t] = NSW ** 2
         NSWRegret = self.optimalNSW - NSW
         self.observedRegret[self.t] = NSWRegret
+        self.observedRegretSquared[self.t] = NSWRegret ** 2
 
         # advance t
         self.t += 1
@@ -49,6 +57,8 @@ class Environment:
         self.t = 0
         self.observedRewards = np.zeros(simulationSteps)
         self.observedRegret = np.zeros_like(self.observedRewards)
+        self.observedRewardsSquared = np.zeros_like(self.observedRewards)
+        self.observedRegretSquared = np.zeros_like(self.observedRewards)
 
         # randomize new arms
         for arm in range(self.nArms):
@@ -72,16 +82,26 @@ class Environment:
     def simulate(self, simulationSteps: int, nSimulations: int):
         self.meanRewards = np.zeros(simulationSteps)
         self.meanRegret = np.zeros_like(self.meanRewards)
+        self.meanSquaredRegret = np.zeros_like(self.meanRewards)
+        self.meanSquaredReward = np.zeros_like(self.meanRewards)
 
         for iSimulation in range(nSimulations):
             print(f'--- Simulation Number {iSimulation} ---')
             self.singleSimulation(simulationSteps)
             self.meanRewards += self.observedRewards
             self.meanRegret += self.observedRegret
+            self.meanSquaredReward += self.observedRewardsSquared
+            self.meanSquaredRegret += self.observedRegretSquared
 
         # compute mean rewards and regrets
         self.meanRewards /= nSimulations
         self.meanRegret /= nSimulations
+        self.meanSquaredReward /= nSimulations
+        self.meanSquaredRegret /= nSimulations
+
+        # compute variance per time step
+        self.rewardVariance = self.meanSquaredReward - (self.meanRewards ** 2)
+        self.regretVariance = self.meanSquaredRegret - (self.meanRegret ** 2)
 
 
 def getUtilityMatrix(arms: list[Arm]):
