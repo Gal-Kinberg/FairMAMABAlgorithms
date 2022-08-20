@@ -198,7 +198,7 @@ class UCBAgents(Agents):
 
 
 class FATSBernoulliAgents(Agents):
-    def __init__(self, nAgents: int, nArms: int, initialAlpha, initialBeta):
+    def __init__(self, nAgents: int, nArms: int, initialAlpha, initialBeta, stepSize=1):
         super().__init__(nAgents, nArms)
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
         self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
@@ -208,6 +208,7 @@ class FATSBernoulliAgents(Agents):
 
         self.initialAlpha = initialAlpha
         self.initialBeta = initialBeta
+        self.stepSize = stepSize
 
         self.alphas = self.initialAlpha * np.ones_like(self.estimatedUtilityMatrix)
         self.betas = self.initialBeta * np.ones_like(self.estimatedUtilityMatrix)
@@ -242,8 +243,8 @@ class FATSBernoulliAgents(Agents):
         self.estimatedUtilityMatrix[arm] = self.totalRewardsMatrix[arm] / self.timesPulled[arm]
 
         # update the beliefs of each agent concerning the pulled arm
-        self.alphas[arm] += reward
-        self.betas[arm] += (np.ones(self.nAgents) - reward)
+        self.alphas[arm] += self.stepSize * reward
+        self.betas[arm] += self.stepSize * (np.ones(self.nAgents) - reward)
 
         self.t += 1
         return
