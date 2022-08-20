@@ -13,14 +13,17 @@ if __name__ == '__main__':
     for arm in range(nArms):
         arms.append(BernoulliArm(nAgents, probabilities=probabilities[arm]))
 
-    agents = UCBAgents(nAgents, nArms, alpha=1)
+    agents = FATSBernoulliAgents(nAgents, nArms, initialAlpha=1, initialBeta=1)
 
-    nSimulations = 1
+    nSimulations = 5
     simulationSteps = int(500)
     simulator = Environment(agents, arms)
     simulator.simulate(simulationSteps, nSimulations)
 
     plt.figure()
     plt.plot(np.cumsum(simulator.meanRegret))
-    plt.title(f'{nAgents} {agents.name()} Agents, {nArms} Arms')
+    plt.title(f'{nAgents} {agents.name()} Agents, {nArms} Arms, {agents.parameters()}')
+    plt.xlabel('Time Step')
+    plt.ylabel('Cumulative NSW Regret')
+    plt.grid(True)
     plt.show()
