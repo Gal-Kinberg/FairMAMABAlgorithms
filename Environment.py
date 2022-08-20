@@ -61,7 +61,8 @@ class Environment:
         self.meanRewards = np.zeros(simulationSteps)
         self.meanRegret = np.zeros_like(self.meanRewards)
 
-        for _ in range(nSimulations):
+        for iSimulation in range(nSimulations):
+            print(f'--- Simulation Number {iSimulation} ---')
             self.singleSimulation(simulationSteps)
             self.meanRewards += self.observedRewards
             self.meanRegret += self.observedRegret
