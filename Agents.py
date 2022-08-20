@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from utils.NashSocialWelfare import getNSW, getOptimalPolicy, getOptimalUCBPolicy
 
-
+# TODO: add reset() method to all agents and call it in initSimulation
 class Agents(ABC):
     def __init__(self, nAgents: int, nArms: int):
         self.nAgents = nAgents
@@ -16,10 +16,18 @@ class Agents(ABC):
     def observeReward(self, arm: int, reward) -> None:
         return
 
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        return 'Agents'
+
 
 class RandomAgents(Agents):
     def __init__(self, nAgents: int, nArms: int):
         super().__init__(nAgents, nArms)
+
+    def name(self) -> str:
+        return 'Random'
 
     def getPolicy(self) -> np.ndarray:
         policy = np.random.random(self.nArms)
@@ -39,6 +47,9 @@ class ExploreFirstAgents(Agents):
         self.t = 0
         self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
         self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+    def name(self) -> str:
+        return 'Explore First'
 
     def getPolicy(self) -> np.ndarray:
         explorationArm = int(np.floor(self.t / self.explorationLength))
@@ -75,6 +86,9 @@ class EpsilonGreedyAgents(Agents):
         self.epsilon = epsilon
         self.nextArmToPull = 0  # the next arm to pull for exploration
 
+    def name(self) -> str:
+        return 'Epsilon Greedy'
+
     def getPolicy(self) -> np.ndarray:
         # check if exploration or exploitation
         if np.random.random() <= self.epsilon:  # Exploration
@@ -105,6 +119,9 @@ class UCBAgents(Agents):
         self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
 
         self.alpha = alpha  # confidence parameter
+
+    def name(self) -> str:
+        return 'UCB'
 
     def getPolicy(self) -> np.ndarray:
         # in first rounds pull each arm once

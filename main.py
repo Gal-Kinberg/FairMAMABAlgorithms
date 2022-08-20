@@ -13,18 +13,14 @@ if __name__ == '__main__':
     for arm in range(nArms):
         arms.append(BernoulliArm(nAgents, probabilities=probabilities[arm]))
 
-    # print(getUtilityMatrix(arms))
-    agents = ExploreFirstAgents(nAgents, nArms, explorationLength=20)
+    agents = UCBAgents(nAgents, nArms, alpha=1)
 
-    # optRes = getOptimalPolicy(getUtilityMatrix(arms))
-    # optimalPolicy = optRes.x
-    # print(optRes)
-
-    nSimulations = 5
+    nSimulations = 1
     simulationSteps = int(500)
     simulator = Environment(agents, arms)
     simulator.simulate(simulationSteps, nSimulations)
 
     plt.figure()
-    plt.plot(simulator.meanRegret)
+    plt.plot(np.cumsum(simulator.meanRegret))
+    plt.title(f'{nAgents} {agents.name()} Agents, {nArms} Arms')
     plt.show()
