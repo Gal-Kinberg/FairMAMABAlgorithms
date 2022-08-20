@@ -36,6 +36,9 @@ def getOptimalPolicy(utilityMatrix: np.ndarray):
     positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
     optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=initialPolicy,
                                   method='trust-constr', constraints=[simplexConst, positiveConst])
+
+    # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix),
+    #                                              nArms, stepSize=1, tolerance=1e-6)
     return optimizationResult.x
 
 
@@ -51,10 +54,13 @@ def getOptimalUCBPolicy(utilityMatrix: np.ndarray, alpha, UCBs):
     positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
     optimizationResult = minimize(fun=lambda x: -getNSW(x, utilityMatrix) - alpha * np.sum(x * UCBs), x0=initialPolicy,
                                   method='trust-constr', constraints=[simplexConst, positiveConst])
+
+    # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix) - alpha * UCBs,
+    #                                              nArms, stepSize=1, tolerance=1e-6)
     return optimizationResult.x
 
 
-def ExponentiatedGradientDescent(targetFunction, gradient, d, stepSize=0.001, tolerance=1e-6, maxIter: int = int(1e6)):
+def ExponentiatedGradientDescent(gradient, d, stepSize=1, tolerance=1e-6, maxIter: int = int(1e6)):
     w = np.ones(d) / d  # initialize at center of simplex
 
     for _ in range(maxIter):
@@ -79,9 +85,8 @@ def ExponentiatedGradientDescent(targetFunction, gradient, d, stepSize=0.001, to
     return w
 
 
-# TODO: write NSW gradient
 # TODO: test other optimization methods
 
 if __name__ == '__main__':
-    w = ExponentiatedGradientDescent(None, lambda x: -np.array([x[1] ** 2, 2 * x[0]*x[1]]), 2, stepSize=1, tolerance=1e-5)
+    w = ExponentiatedGradientDescent(lambda x: -np.array([x[1] ** 2, 2 * x[0] * x[1]]), 2, stepSize=1, tolerance=1e-5)
     print(w)
