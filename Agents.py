@@ -3,7 +3,7 @@ import numpy as np
 from utils.NashSocialWelfare import getNSW, getOptimalPolicy, getOptimalUCBPolicy
 
 
-# TODO: add reset() method to all agents and call it in initSimulation
+
 class Agents(ABC):
     def __init__(self, nAgents: int, nArms: int):
         self.nAgents = nAgents
@@ -131,7 +131,11 @@ class EpsilonGreedyAgents(Agents):
 
     def getPolicy(self) -> np.ndarray:
         # check if exploration or exploitation
-        if np.random.random() <= self.epsilon:  # Exploration
+        if not np.isscalar(self.epsilon):
+            currEpsilon = self.epsilon[self.t]
+        else:
+            currEpsilon = self.epsilon
+        if np.random.random() <= currEpsilon:  # Exploration
             policy = np.zeros(self.nArms)
             policy[self.nextArmToPull] = 1
             self.nextArmToPull = np.mod(self.nextArmToPull + 1, self.nArms)
@@ -183,8 +187,13 @@ class UCBAgents(Agents):
             policy[self.t] = 1
             return policy
         else:
-            policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha,
-                                         np.sqrt(np.log(self.nArms * self.nAgents * self.t) / self.timesPulled))
+            UCBs = np.sqrt(np.log(self.nArms * self.nAgents * self.t) / self.timesPulled)
+            if np.isscalar(self.alpha):
+                policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha,
+                                             UCBs)
+            else:
+                policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha[self.t],
+                                             UCBs)
         return policy
 
     def observeReward(self, arm: int, reward) -> None:
