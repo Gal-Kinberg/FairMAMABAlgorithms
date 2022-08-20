@@ -257,3 +257,65 @@ class FATSBernoulliAgents(Agents):
 
         self.t += 1
         return
+
+
+class UCBVAgents(Agents):
+    def __init__(self, nAgents: int, nArms: int, alpha):
+        super().__init__(nAgents, nArms)
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+        self.totalSquaredRewardsMatrix = np.zeros_like(self.totalRewardsMatrix)
+        self.estimatedVarianceMatrix = np.zeros_like(self.estimatedUtilityMatrix)
+
+        self.alpha = alpha  # confidence parameter
+
+    def name(self) -> str:
+        return 'UCB-V'
+
+    def parameters(self) -> str:
+        if np.isscalar(self.alpha):
+            return f'Alpha = {self.alpha}'
+        else:
+            return f'Alpha = {self.alpha[0]} to {self.alpha[-1]}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+        self.totalSquaredRewardsMatrix = np.zeros_like(self.totalRewardsMatrix)
+        self.estimatedVarianceMatrix = np.zeros_like(self.estimatedUtilityMatrix)
+
+    def getPolicy(self) -> np.ndarray:
+        # in first rounds pull each arm once
+        if self.t < self.nArms:
+            policy = np.zeros(self.nArms)
+            policy[self.t] = 1
+            return policy
+        else:
+            # TODO: implement UCB-V bounds
+            meanVariancePerArm = np.mean(self.estimatedVarianceMatrix, axis=1)
+            UCBs = np.sqrt((2 * meanVariancePerArm * np.log(self.t)) / self.timesPulled) + (3 * np.log(self.t) / self.timesPulled)
+            if np.isscalar(self.alpha):
+                policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha,
+                                             UCBs)
+            else:
+                policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha[self.t],
+                                             UCBs)
+        return policy
+
+    def observeReward(self, arm: int, reward) -> None:
+        # update estimated utility matrix
+        self.totalRewardsMatrix[arm] += reward
+        self.totalSquaredRewardsMatrix[arm] += reward ** 2
+        self.timesPulled[arm] += 1
+        self.estimatedUtilityMatrix[arm] = self.totalRewardsMatrix[arm] / self.timesPulled[arm]
+        self.estimatedVarianceMatrix[arm] = (self.totalSquaredRewardsMatrix[arm] / self.timesPulled[arm]) - (self.estimatedUtilityMatrix[arm] ** 2)
+
+        self.t += 1
+        return
