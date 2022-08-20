@@ -50,6 +50,18 @@ class Environment:
         self.observedRewards = np.zeros(simulationSteps)
         self.observedRegret = np.zeros_like(self.observedRewards)
 
+        # randomize new arms
+        for arm in range(self.nArms):
+            self.arms[arm].randomize()
+
+        self.agents.reset()  # reset agents
+
+        # save the true utility matrix
+        self.utilityMatrix = getUtilityMatrix(self.arms)
+
+        self.optimalPolicy = getOptimalPolicy(self.utilityMatrix)
+        self.optimalNSW = getNSW(self.optimalPolicy, self.utilityMatrix)
+
     def singleSimulation(self, simulationSteps: int):
         self.initSimulation(simulationSteps)
         for _ in range(simulationSteps):

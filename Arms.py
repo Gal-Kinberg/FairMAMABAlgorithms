@@ -11,6 +11,11 @@ class Arm(ABC):
     def pull(self) -> np.ndarray:
         pass
 
+    @abstractmethod
+    def randomize(self):
+        # randomize the parameters of the arm's distribution
+        pass
+
     @property
     @abstractmethod
     def utilities(self) -> np.ndarray:
@@ -25,6 +30,9 @@ class BernoulliArm(Arm):
 
     def pull(self) -> np.ndarray:
         return np.random.binomial(n=1, p=self.probabilities)
+
+    def randomize(self):
+        self.probabilities = np.random.random(self.nAgents)
 
     def utilities(self) -> np.ndarray:
         return self.probabilities

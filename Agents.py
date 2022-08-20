@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from utils.NashSocialWelfare import getNSW, getOptimalPolicy, getOptimalUCBPolicy
 
+
 # TODO: add reset() method to all agents and call it in initSimulation
 class Agents(ABC):
     def __init__(self, nAgents: int, nArms: int):
@@ -14,12 +15,21 @@ class Agents(ABC):
 
     @abstractmethod
     def observeReward(self, arm: int, reward) -> None:
-        return
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
 
     @property
     @abstractmethod
     def name(self) -> str:
         return 'Agents'
+
+    @property
+    @abstractmethod
+    def parameters(self) -> str:
+        return 'Parameters'
 
 
 class RandomAgents(Agents):
@@ -28,6 +38,12 @@ class RandomAgents(Agents):
 
     def name(self) -> str:
         return 'Random'
+
+    def parameters(self) -> str:
+        return ''
+
+    def reset(self):
+        return
 
     def getPolicy(self) -> np.ndarray:
         policy = np.random.random(self.nArms)
@@ -50,6 +66,16 @@ class ExploreFirstAgents(Agents):
 
     def name(self) -> str:
         return 'Explore First'
+
+    def parameters(self) -> str:
+        return f'L = {self.explorationLength}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
 
     def getPolicy(self) -> np.ndarray:
         explorationArm = int(np.floor(self.t / self.explorationLength))
@@ -89,6 +115,20 @@ class EpsilonGreedyAgents(Agents):
     def name(self) -> str:
         return 'Epsilon Greedy'
 
+    def parameters(self) -> str:
+        if np.isscalar(self.epsilon):
+            return f'Epsilon = {self.epsilon}'
+        else:
+            return f'Epsilon = {self.epsilon[0]} to {self.epsilon[-1]}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+        self.nextArmToPull = 0  # the next arm to pull for exploration
+
     def getPolicy(self) -> np.ndarray:
         # check if exploration or exploitation
         if np.random.random() <= self.epsilon:  # Exploration
@@ -123,6 +163,19 @@ class UCBAgents(Agents):
     def name(self) -> str:
         return 'UCB'
 
+    def parameters(self) -> str:
+        if np.isscalar(self.alpha):
+            return f'Alpha = {self.alpha}'
+        else:
+            return f'Alpha = {self.alpha[0]} to {self.alpha[-1]}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
     def getPolicy(self) -> np.ndarray:
         # in first rounds pull each arm once
         if self.t < self.nArms:
@@ -130,7 +183,8 @@ class UCBAgents(Agents):
             policy[self.t] = 1
             return policy
         else:
-            policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha, np.sqrt(np.log(self.nArms * self.nAgents * self.t) / self.timesPulled))
+            policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha,
+                                         np.sqrt(np.log(self.nArms * self.nAgents * self.t) / self.timesPulled))
         return policy
 
     def observeReward(self, arm: int, reward) -> None:
@@ -152,11 +206,27 @@ class FATSBernoulliAgents(Agents):
         self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
         self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
 
-        self.alphas = initialAlpha * np.ones_like(self.estimatedUtilityMatrix)
-        self.betas = initialBeta * np.ones_like(self.estimatedUtilityMatrix)
+        self.initialAlpha = initialAlpha
+        self.initialBeta = initialBeta
+
+        self.alphas = self.initialAlpha * np.ones_like(self.estimatedUtilityMatrix)
+        self.betas = self.initialBeta * np.ones_like(self.estimatedUtilityMatrix)
 
     def name(self) -> str:
         return 'FATS'
+
+    def parameters(self) -> str:
+        return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+        self.alphas = self.initialAlpha * np.ones_like(self.estimatedUtilityMatrix)
+        self.betas = self.initialBeta * np.ones_like(self.estimatedUtilityMatrix)
 
     def getPolicy(self) -> np.ndarray:
         # sample random beliefs
