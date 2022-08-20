@@ -13,6 +13,17 @@ def getNSW(policy: np.ndarray, utilityMatrix: np.ndarray):
     return np.prod(np.sum(policy[:, np.newaxis] * utilityMatrix, axis=0))
 
 
+def getNSWGradient(policy: np.ndarray, utilityMatrix: np.ndarray):
+    nArms, nAgents = utilityMatrix.shape
+
+    gradient = np.zeros(nArms)
+    for arm in range(nArms):
+        for agent in range(nAgents):
+            gradient[arm] += utilityMatrix[arm, agent] * getNSW(policy, utilityMatrix[:, np.arange(nAgents) != agent])
+
+    return gradient
+
+
 def getOptimalPolicy(utilityMatrix: np.ndarray):
     nArms, nAgents = utilityMatrix.shape
 
