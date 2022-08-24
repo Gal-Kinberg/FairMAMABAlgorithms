@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from utils.NashSocialWelfare import getNSW, getOptimalPolicy, getOptimalUCBPolicy
 
-# TODO: add option for vectorial step size in FATS
-# TODO: implement GaussianFATS?
 
 class Agents(ABC):
     def __init__(self, nAgents: int, nArms: int):
@@ -120,7 +118,7 @@ class EpsilonGreedyAgents(Agents):
         if np.isscalar(self.epsilon):
             return f'Epsilon = {self.epsilon}'
         else:
-            return f'Epsilon = {self.epsilon[0]} to {self.epsilon[-1]}'
+            return f'Epsilon = {self.epsilon[0]:.3f} to {self.epsilon[-1]:.3f}'
 
     def reset(self):
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
@@ -172,7 +170,7 @@ class UCBAgents(Agents):
         if np.isscalar(self.alpha):
             return f'Alpha = {self.alpha}'
         else:
-            return f'Alpha = {self.alpha[0]} to {self.alpha[-1]}'
+            return f'Alpha = {self.alpha[0]:.3f} to {self.alpha[-1]:.3f}'
 
     def reset(self):
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
@@ -208,7 +206,7 @@ class UCBAgents(Agents):
 
 
 class FATSBernoulliAgents(Agents):
-    def __init__(self, nAgents: int, nArms: int, initialAlpha, initialBeta, stepSize=1):
+    def __init__(self, nAgents: int, nArms: int, initialAlpha, initialBeta, stepSize):
         super().__init__(nAgents, nArms)
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
         self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
@@ -227,7 +225,10 @@ class FATSBernoulliAgents(Agents):
         return 'FATS'
 
     def parameters(self) -> str:
-        return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}, Step Size = {self.stepSize}'
+        if np.isscalar(self.stepSize):
+            return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}, Step Size = {self.stepSize}'
+        else:
+            return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}, Step Size = {self.stepSize[0]:.3f} to {self.stepSize[-1]:.3f}'
 
     def reset(self):
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
@@ -253,8 +254,9 @@ class FATSBernoulliAgents(Agents):
         self.estimatedUtilityMatrix[arm] = self.totalRewardsMatrix[arm] / self.timesPulled[arm]
 
         # update the beliefs of each agent concerning the pulled arm
-        self.alphas[arm] += self.stepSize * reward
-        self.betas[arm] += self.stepSize * (np.ones(self.nAgents) - reward)
+        currStepSize = self.stepSize if np.isscalar(self.stepSize) else self.stepSize[self.t]
+        self.alphas[arm] += currStepSize * reward
+        self.betas[arm] += currStepSize * (np.ones(self.nAgents) - reward)
 
         self.t += 1
         return
@@ -281,7 +283,7 @@ class UCBVAgents(Agents):
         if np.isscalar(self.alpha):
             return f'Alpha = {self.alpha}'
         else:
-            return f'Alpha = {self.alpha[0]} to {self.alpha[-1]}'
+            return f'Alpha = {self.alpha[0]:.3f} to {self.alpha[-1]:.3f}'
 
     def reset(self):
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
