@@ -320,3 +320,56 @@ class UCBVAgents(Agents):
 
         self.t += 1
         return
+
+
+class FATSGaussianAgents(Agents):
+    def __init__(self, nAgents: int, nArms: int, dataVariance, initialMean, initialVarianceEstimate):
+        super().__init__(nAgents, nArms)
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+        self.dataVariance = dataVariance
+        self.initialMean = initialMean
+        self.initialVarianceEstimate = initialVarianceEstimate
+
+        self.priorMeans = self.initialMean * np.ones_like(self.estimatedUtilityMatrix)
+        self.priorVariances = self.initialVarianceEstimate * np.ones_like(self.estimatedUtilityMatrix)
+
+    def name(self) -> str:
+        return 'FATS'
+
+    def parameters(self) -> str:
+        return f'Initial Means = {self.initialMean}, Initial Variance = {self.initialVarianceEstimate}'
+
+    def reset(self):
+        self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled
+        self.totalRewardsMatrix = np.zeros((self.nArms, self.nAgents))
+        self.t = 0
+        self.estimatedUtilityMatrix = np.zeros((self.nArms, self.nAgents))
+        self.estimatedOptimalPolicy = np.ones(self.nArms) / self.nArms  # initialize as a uniform random policy
+
+        self.priorMeans = self.initialMean * np.ones_like(self.estimatedUtilityMatrix)
+        self.priorVariances = self.initialVarianceEstimate * np.ones_like(self.estimatedUtilityMatrix)
+
+    def getPolicy(self) -> np.ndarray:
+        # sample random beliefs
+        beliefUtilityMatrix = np.random.normal(self.priorMeans, self.priorVariances)
+        # select optimal policy based on beliefs
+        policy = getOptimalPolicy(beliefUtilityMatrix)
+        return policy
+
+    def observeReward(self, arm: int, reward) -> None:
+        # update estimated utility matrix
+        self.totalRewardsMatrix[arm] += reward
+        self.timesPulled[arm] += 1
+        self.estimatedUtilityMatrix[arm] = self.totalRewardsMatrix[arm] / self.timesPulled[arm]
+
+        # update the beliefs of each agent concerning the pulled arm
+        self.priorMeans[arm] = (self.dataVariance / (self.t * self.initialVarianceEstimate + self.dataVariance)) * self.initialMean + (self.t * self.initialVarianceEstimate / (self.t * self.initialVarianceEstimate + self.dataVariance)) * self.estimatedUtilityMatrix[arm]
+        self.priorVariances[arm] = ((self.t / self.dataVariance) + (1 / self.initialVarianceEstimate)) ** (-1)
+
+        self.t += 1
+        return
