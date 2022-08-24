@@ -45,4 +45,22 @@ class BernoulliArm(Arm):
     def utilities(self) -> np.ndarray:
         return self.probabilities
 
-# TODO: implement Gaussian Arm
+
+class GaussianArm(Arm):
+    def __init__(self, nAgents: int, means=None, scale=1):
+        super().__init__(nAgents)
+        self.means = means
+        self.scale = scale
+
+    def name(self) -> str:
+        return 'Gaussian'
+
+    def pull(self) -> np.ndarray:
+        return np.random.normal(self.means)
+
+    def randomize(self):
+        self.means = np.random.random(size=self.nAgents) * self.scale
+
+    def utilities(self) -> np.ndarray:
+        return self.means
+
