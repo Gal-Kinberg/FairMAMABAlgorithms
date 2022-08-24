@@ -36,3 +36,5 @@ class BernoulliArm(Arm):
 
     def utilities(self) -> np.ndarray:
         return self.probabilities
+
+# TODO: implement Gaussian Arm

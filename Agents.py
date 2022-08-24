@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from utils.NashSocialWelfare import getNSW, getOptimalPolicy, getOptimalUCBPolicy
 
-
+# TODO: add option for vectorial step size in FATS
+# TODO: implement GaussianFATS?
 
 class Agents(ABC):
     def __init__(self, nAgents: int, nArms: int):
@@ -226,7 +227,7 @@ class FATSBernoulliAgents(Agents):
         return 'FATS'
 
     def parameters(self) -> str:
-        return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}'
+        return f'Alpha = {self.initialAlpha}, Beta = {self.initialBeta}, Step Size = {self.stepSize}'
 
     def reset(self):
         self.timesPulled = np.zeros(self.nArms)  # number of times each arm was pulled

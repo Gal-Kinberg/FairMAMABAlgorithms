@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.optimize import LinearConstraint, minimize
 
-from Arms import Arm
-
 
 def getNSW(policy: np.ndarray, utilityMatrix: np.ndarray):
     """
@@ -36,10 +34,11 @@ def getOptimalPolicy(utilityMatrix: np.ndarray):
     positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
     optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=initialPolicy,
                                   method='trust-constr', constraints=[simplexConst, positiveConst])
+    optimalPolicy = optimizationResult.x
 
     # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix),
     #                                              nArms, stepSize=1, tolerance=1e-6)
-    return optimizationResult.x
+    return optimalPolicy
 
 
 def getOptimalUCBPolicy(utilityMatrix: np.ndarray, alpha, UCBs):
@@ -54,10 +53,11 @@ def getOptimalUCBPolicy(utilityMatrix: np.ndarray, alpha, UCBs):
     positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
     optimizationResult = minimize(fun=lambda x: -getNSW(x, utilityMatrix) - alpha * np.sum(x * UCBs), x0=initialPolicy,
                                   method='trust-constr', constraints=[simplexConst, positiveConst])
+    optimalPolicy = optimizationResult.x
 
     # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix) - alpha * UCBs,
     #                                              nArms, stepSize=1, tolerance=1e-6)
-    return optimizationResult.x
+    return optimalPolicy
 
 
 def ExponentiatedGradientDescent(gradient, d, stepSize=1, tolerance=1e-6, maxIter: int = int(1e6)):
@@ -84,8 +84,6 @@ def ExponentiatedGradientDescent(gradient, d, stepSize=1, tolerance=1e-6, maxIte
     print("Didn't converge in maximum iterations. Exiting...")
     return w
 
-
-# TODO: test other optimization methods
 
 if __name__ == '__main__':
     w = ExponentiatedGradientDescent(lambda x: -np.array([x[1] ** 2, 2 * x[0] * x[1]]), 2, stepSize=1, tolerance=1e-5)
