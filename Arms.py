@@ -7,6 +7,11 @@ class Arm(ABC):
         self.nAgents = nAgents
         return
 
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
     @abstractmethod
     def pull(self) -> np.ndarray:
         pass
@@ -24,9 +29,12 @@ class Arm(ABC):
 
 
 class BernoulliArm(Arm):
-    def __init__(self, nAgents: int, probabilities):
+    def __init__(self, nAgents: int, probabilities=None):
         super().__init__(nAgents)
         self.probabilities = probabilities
+
+    def name(self) -> str:
+        return 'Bernoulli'
 
     def pull(self) -> np.ndarray:
         return np.random.binomial(n=1, p=self.probabilities)
