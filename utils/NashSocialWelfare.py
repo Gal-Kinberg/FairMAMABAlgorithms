@@ -30,14 +30,17 @@ def getOptimalPolicy(utilityMatrix: np.ndarray):
     if getNSW(initialPolicy, utilityMatrix) == 0:  # nothing is known about the utilities right now
         return initialPolicy
 
-    simplexConst = LinearConstraint(np.ones(nArms), lb=1, ub=1)
-    positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
-    optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=initialPolicy,
-                                  method='trust-constr', constraints=[simplexConst, positiveConst])
-    optimalPolicy = optimizationResult.x
+    try:
+        simplexConst = LinearConstraint(np.ones(nArms), lb=1, ub=1)
+        positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
+        optimizationResult = minimize(fun=lambda x: -np.log(getNSW(x, utilityMatrix)), x0=initialPolicy,
+                                      method='trust-constr', constraints=[simplexConst, positiveConst])
+        optimalPolicy = optimizationResult.x
 
-    # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix),
-    #                                              nArms, stepSize=1, tolerance=1e-6)
+        # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix),
+        #                                              nArms, stepSize=1, tolerance=1e-6)
+    except:
+        optimalPolicy = initialPolicy
     return optimalPolicy
 
 
@@ -49,14 +52,17 @@ def getOptimalUCBPolicy(utilityMatrix: np.ndarray, alpha, UCBs):
     if getNSW(initialPolicy, utilityMatrix) == 0:  # nothing is known about the utilities right now
         return initialPolicy
 
-    simplexConst = LinearConstraint(np.ones(nArms), lb=1, ub=1)
-    positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
-    optimizationResult = minimize(fun=lambda x: -getNSW(x, utilityMatrix) - alpha * np.sum(x * UCBs), x0=initialPolicy,
-                                  method='trust-constr', constraints=[simplexConst, positiveConst])
-    optimalPolicy = optimizationResult.x
+    try:
+        simplexConst = LinearConstraint(np.ones(nArms), lb=1, ub=1)
+        positiveConst = LinearConstraint(np.eye(nArms), lb=0, ub=np.inf)
+        optimizationResult = minimize(fun=lambda x: -getNSW(x, utilityMatrix) - alpha * np.sum(x * UCBs), x0=initialPolicy,
+                                      method='trust-constr', constraints=[simplexConst, positiveConst])
+        optimalPolicy = optimizationResult.x
 
-    # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix) - alpha * UCBs,
-    #                                              nArms, stepSize=1, tolerance=1e-6)
+        # optimalPolicy = ExponentiatedGradientDescent(lambda policy: -getNSWGradient(policy, utilityMatrix) - alpha * UCBs,
+        #                                              nArms, stepSize=1, tolerance=1e-6)
+    except:
+        optimalPolicy = initialPolicy
     return optimalPolicy
 
 

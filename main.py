@@ -70,7 +70,7 @@ if __name__ == '__main__':
         plt.plot(cumRegret)
         plt.fill_between(np.arange(simulationSteps), cumRegret + stdRegret,
                          cumRegret - stdRegret, alpha=0.3)
-        plt.plot()
+        # plt.plot()
         plt.title(f'{nArms} {arms[0].name()} Arms \n {nAgents} {agents.name()} Agents, {agents.parameters()}')
         plt.xlabel('Time Step')
         plt.ylabel('Cumulative NSW Regret')
