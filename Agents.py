@@ -302,7 +302,7 @@ class UCBVAgents(Agents):
             return policy
         else:
             # TODO: implement UCB-V bounds
-            meanVariancePerArm = np.mean(self.estimatedVarianceMatrix, axis=1)
+            meanVariancePerArm = np.max(self.estimatedVarianceMatrix, axis=1)
             UCBs = np.sqrt((2 * meanVariancePerArm * np.log(self.t)) / self.timesPulled) + (3 * np.log(self.t) / self.timesPulled)
             if np.isscalar(self.alpha):
                 policy = getOptimalUCBPolicy(self.estimatedUtilityMatrix, self.alpha,

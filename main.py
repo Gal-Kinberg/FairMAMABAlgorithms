@@ -9,10 +9,10 @@ import time
 
 if __name__ == '__main__':
     # Simulation Parameters
-    nAgents = 3
-    nArms = 5
+    nAgents = 10
+    nArms = 10
     nSimulations = 100
-    simulationSteps = int(1000)
+    simulationSteps = int(1500)
     SAVE = True
 
     # Generate Arms
@@ -43,8 +43,7 @@ if __name__ == '__main__':
     fatsAgents = FATSBernoulliAgents(nAgents, nArms, initialAlpha=1, initialBeta=1, stepSize=1)
     fatsAgentsStepSize = FATSBernoulliAgents(nAgents, nArms, initialAlpha=1, initialBeta=1, stepSize=np.linspace(1.5, 0.5, simulationSteps))
 
-    agentsList = [exploreFirstAgents, epsilonGreedyAgents, epsilonGreedyAgentsConstant, ucbAgents, ucbAgentsConstant,
-                  ucb_vAgents, ucb_vAgentsChanging, fatsAgents, fatsAgentsStepSize]
+    agentsList = [fatsAgents]
     for agents in agentsList:
 
         # Create Simulation Environment

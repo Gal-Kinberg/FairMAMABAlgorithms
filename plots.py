@@ -26,16 +26,22 @@ if __name__ == '__main__':
     # UCB-V
     UCBVResults = loadmat(r'experiments\UCB-V\5_Bernoulli_Arms_3_UCB-V_Alpha = 0.080 to 0.008_100_trials_26_8_12_1.mat')
     UCBVResults['color'] = 'C3'
+    UCBVResults['Agents'] = ['UCB-V (Mean)']
+
+    UCBVMAXResults = loadmat(r'experiments\UCB-V\5_Bernoulli_Arms_3_UCB-V_Max_Alpha = 0.080 to 0.008_100_trials_31_8_18_54.mat')
+    UCBVMAXResults['color'] = 'C5'
+    UCBVMAXResults['Agents'] = ['UCB-V (Max)']
 
     # FATS
     FATSResults = loadmat(r'experiments\FATS\5_Bernoulli_Arms_3_FATS_Alpha = 1, Beta = 1, Step Size = 1.500 to 0.500_100_trials_26_8_13_8.mat')
     FATSResults['color'] = 'C4'
 
-    resultsList = [UCBResults, UCBVResults, FATSResults]
+    resultsList = [UCBResults, UCBVResults, FATSResults, UCBVMAXResults]
 
     # plot
     plt.figure()
     for result in resultsList:
+        print(result['Agents'])
         plt.plot(result['meanCumRegret'][0], label=result['Agents'][0], color=result['color'])
         plt.fill_between(np.arange(result['simulationSteps'][0][0]), result['meanCumRegret'][0] + result['stdRegret'][0],
                          result['meanCumRegret'][0] - result['stdRegret'][0], alpha=0.3, color=result['color'])
@@ -46,6 +52,6 @@ if __name__ == '__main__':
     plt.grid(True)
     plt.legend(loc='upper left')
     if SAVE:
-        plotName = 'Only Best Algorithms, Mean UCB'
+        plotName = 'Only Best Algorithms, Mean and Max UCB-V'
         plt.savefig(f'experiments\\Combined Graphs\\{plotName}.png', bbox_inches='tight')
     plt.show()
